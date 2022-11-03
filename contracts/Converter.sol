@@ -85,6 +85,26 @@ contract Converter is IConverter, IStaking, Util, PermissionControl, Pausable {
     }
 
     /**
+     * @dev Get earned energy amount for address `addr`
+     *
+     * @param addr The wallet address to get earned energy for
+     * @return Earned energy amount
+     */
+    function getEarnedEnergy(address addr) public view nonZero(addr) returns (uint256) {
+        return energyStorage_.earnedAmount(addr);
+    }
+
+    /**
+     * @dev Get earned LBA energy amount for address `addr`
+     *
+     * @param addr The wallet address to get earned energy for
+     * @return Earned energy amount
+     */
+    function getEarnedLBAEnergy(address addr) public view nonZero(addr) returns (uint256) {
+        return lbaEnergyStorage_.earnedAmount(addr);
+    }
+
+    /**
      * @dev Calculate the energy for `addr` based on the staking history  before the endTime of specified period
      *
      * @param addr The wallet address to calculated for
@@ -247,7 +267,8 @@ contract Converter is IConverter, IStaking, Util, PermissionControl, Pausable {
     function getEnergy(address addr, uint256 periodId) public view virtual returns (uint256) {
         uint256 generatedEnergy = calculateEnergy(addr, periodId);
         uint256 consumedEnergy = getConsumedEnergy(addr);
-        uint256 remainingEnergy = generatedEnergy > consumedEnergy ? generatedEnergy - consumedEnergy : 0;
+        uint256 earnedEnergy = getEarnedEnergy(addr);
+        uint256 remainingEnergy = generatedEnergy + earnedEnergy > consumedEnergy ? generatedEnergy + earnedEnergy - consumedEnergy : 0;
         return remainingEnergy + getRemainingLBAEnergy(addr, periodId);
     }
 
@@ -272,7 +293,8 @@ contract Converter is IConverter, IStaking, Util, PermissionControl, Pausable {
     function getRemainingLBAEnergy(address addr, uint256 periodId) public view returns (uint256) {
         uint256 availableEnergy = calculateAvailableLBAEnergy(addr, periodId);
         uint256 consumedEnergy = getConsumedLBAEnergy(addr);
-        if (availableEnergy > 0 && availableEnergy > consumedEnergy) return availableEnergy - consumedEnergy;
+        uint256 earnedEnergy = getEarnedLBAEnergy(addr);
+        if (availableEnergy > 0 && availableEnergy + earnedEnergy > consumedEnergy) return availableEnergy + earnedEnergy - consumedEnergy;
         return 0;
     }
 

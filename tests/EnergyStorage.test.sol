@@ -99,6 +99,46 @@ contract EnergyStorageTestContract is DSTest, IConverter, Util {
         energyStorage_.increaseConsumedAmount(someone, 100);
     }
 
+    /**
+     * @notice GIVEN: a wallet, and amount
+     * @notice  WHEN: caller is a converter
+     * @notice   AND: wallet address is valid
+     * @notice  THEN: should get correct earned amount from mappings
+     */
+    function testIncreaseEarnedAmount() public skip(false) {
+        assert(energyStorage_.earnedAmount(someone) == 0);
+
+        uint256 newEarnedAmount = 100;
+        vm.startPrank(address(converterLogic_));
+        energyStorage_.increaseEarnedAmount(someone, newEarnedAmount);
+        assert(energyStorage_.earnedAmount(someone) == newEarnedAmount);
+    }
+
+    /**
+     * @notice GIVEN: a wallet, and amount
+     * @notice  WHEN: caller is a converter
+     * @notice   AND:  wallet address is invalid
+     * @notice  THEN: should revert the message WRONG_ADDRESS
+     */
+    function testIncreaseEarnedAmount_wrong_wallet() public skip(false) {
+        vm.startPrank(address(converterLogic_));
+        vm.expectRevert(abi.encodeWithSelector(InvalidInput.selector, WRONG_ADDRESS));
+        energyStorage_.increaseEarnedAmount(address(0), 100);
+    }
+
+    /**
+     * @notice GIVEN: a wallet, and amount
+     * @notice  WHEN: caller is not a converter
+     * @notice  THEN: should revert the message "AccessControl: account ..."
+     */
+    function testIncreaseEarnedAmount_not_a_converter() public skip(false) {
+        vm.startPrank(someone);
+        vm.expectRevert(
+            "AccessControl: account 0xa847d497b38b9e11833eac3ea03921b40e6d847c is missing role 0x9d56108290ea0bc9c5c59c3ad357dca9d1b29ed7f3ae1443bef2fa2159bdf5e8"
+        );
+        energyStorage_.increaseEarnedAmount(someone, 100);
+    }
+
     /** ----------------------------------
      * ! Contract modifiers
      * ----------------------------------- */

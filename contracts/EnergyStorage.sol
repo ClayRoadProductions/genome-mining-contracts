@@ -14,6 +14,7 @@ import "./helpers/PermissionControl.sol";
 contract EnergyStorage is Util, PermissionControl {
     bool private _initialized = false;
     mapping(address => uint256) public consumedAmount;
+    mapping(address => uint256) public earnedAmount;
 
     constructor(address controller) {
         if (!_isContract(controller)) revert ContractError(INVALID_CONTROLLER);
@@ -30,6 +31,18 @@ contract EnergyStorage is Util, PermissionControl {
     function increaseConsumedAmount(address addr, uint256 amount) external onlyRole(CONSUMER_ROLE) {
         if (address(addr) == address(0)) revert InvalidInput(WRONG_ADDRESS);
         consumedAmount[addr] += amount;
+    }
+
+    /**
+     * @dev Increase earned energy for address `addr`
+     * @dev can only be called by Converter
+     *
+     * @param addr The wallet address which earned the energy
+     * @param amount The amount of earned energy
+     */
+    function increaseEarnedAmount(address addr, uint256 amount) external onlyRole(CONSUMER_ROLE) {
+        if (address(addr) == address(0)) revert InvalidInput(WRONG_ADDRESS);
+        earnedAmount[addr] += amount;
     }
 
     /** ----------------------------------

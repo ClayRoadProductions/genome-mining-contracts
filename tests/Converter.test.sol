@@ -147,6 +147,58 @@ contract ConverterTestContract is DSTest, IConverter, IStaking, Util {
     }
 
     /**
+     * @notice GIVEN: a wallet, and amount
+     * @notice  WHEN: caller is a converter
+     * @notice   AND: wallet address is valid
+     * @notice  THEN: should get correct earned amount from mappings
+     */
+    function testGetEarnedEnergy() public skip(false) {
+        assert(converterLogic_.getEarnedEnergy(someone) == 0);
+
+        uint256 newEarnedAmount = 100;
+        vm.startPrank(address(converterLogic_));
+        energyStorage_.increaseEarnedAmount(someone, newEarnedAmount);
+        assert(converterLogic_.getEarnedEnergy(someone) == newEarnedAmount);
+    }
+
+    /**
+     * @notice GIVEN: a wallet, and amount
+     * @notice  WHEN: caller is a converter
+     * @notice   AND:  wallet address is invalid
+     * @notice  THEN: should revert the message WRONG_ADDRESS
+     */
+    function testGetEarnedEnergy_wrong_wallet() public skip(false) {
+        vm.expectRevert(abi.encodeWithSelector(InvalidInput.selector, WRONG_ADDRESS));
+        converterLogic_.getEarnedEnergy(address(0));
+    }
+
+    /**
+     * @notice GIVEN: a wallet, and amount
+     * @notice  WHEN: caller is a converter
+     * @notice   AND: wallet address is valid
+     * @notice  THEN: should get correct earned amount from mappings
+     */
+    function testGetEarnedLBAEnergy() public skip(false) {
+        assert(converterLogic_.getEarnedLBAEnergy(someone) == 0);
+
+        uint256 newEarnedAmount = 100;
+        vm.startPrank(address(converterLogic_));
+        lbaEnergyStorage_.increaseEarnedAmount(someone, newEarnedAmount);
+        assert(converterLogic_.getEarnedLBAEnergy(someone) == newEarnedAmount);
+    }
+
+    /**
+     * @notice GIVEN: a wallet, and amount
+     * @notice  WHEN: caller is a converter
+     * @notice   AND:  wallet address is invalid
+     * @notice  THEN: should revert the message WRONG_ADDRESS
+     */
+    function testGetEarnedLBAEnergy_wrong_wallet() public skip(false) {
+        vm.expectRevert(abi.encodeWithSelector(InvalidInput.selector, WRONG_ADDRESS));
+        converterLogic_.getEarnedLBAEnergy(address(0));
+    }
+
+    /**
      * @notice GIVEN: Period struct data (startTime, endTime, astoMultiplier and lpMultiplier)
      * @notice  WHEN: manager calls `addPeriod` or `updatePeriod` function
      * @notice  THEN: period added or updated in the contract
